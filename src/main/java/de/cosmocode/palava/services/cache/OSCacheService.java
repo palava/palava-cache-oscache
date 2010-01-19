@@ -21,20 +21,19 @@ package de.cosmocode.palava.services.cache;
 
 import java.io.Serializable;
 
-import org.jdom.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Preconditions;
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import com.opensymphony.oscache.base.Cache;
 import com.opensymphony.oscache.base.NeedsRefreshException;
 import com.opensymphony.oscache.base.algorithm.FIFOCache;
 import com.opensymphony.oscache.base.algorithm.LRUCache;
 import com.opensymphony.oscache.base.algorithm.UnlimitedCache;
 
-import de.cosmocode.palava.AbstractService;
-import de.cosmocode.palava.Server;
 import de.cosmocode.palava.ServiceInitializationException;
+import de.cosmocode.palava.core.service.lifecycle.Initializable;
 
 /**
  * An implementation of the {@link CacheService} interface
@@ -42,20 +41,30 @@ import de.cosmocode.palava.ServiceInitializationException;
  * 
  * @author Willi Schoenborn
  */
-public class OSCacheService extends AbstractService implements CacheService {
+public class OSCacheService implements CacheService, Initializable {
 
     private static final Logger log = LoggerFactory.getLogger(OSCacheService.class);
     
+    @Inject
+    @Named("oscache.useMemoryCaching")
     private boolean useMemoryCaching;
-    
+
+    @Inject
+    @Named("oscache.unlimitedDiskCache")
     private boolean unlimitedDiskCache;
-    
+
+    @Inject
+    @Named("oscache.overflowPersistence")
     private boolean overflowPersistence;
-    
+
+    @Inject
+    @Named("oscache.blocking")
     private boolean blocking;
     
     private Class<?> algorithm;
     
+    @Inject
+    @Named("oscache.capacity")
     private int capacity;
     
     private ClearableCache cache;
@@ -80,23 +89,10 @@ public class OSCacheService extends AbstractService implements CacheService {
         }
         
     }
-    
-    @Override
-    public void configure(Element root, Server neverUsed) {
-        final CacheMode cacheMode = CacheMode.valueOf(Preconditions.checkNotNull(
-            root.getChildText("cacheMode"), "CacheMode").toUpperCase());
+
+    @Inject
+    void setAlgorithm(@Named("oscache.cacheMode") CacheMode cacheMode) {
         this.algorithm = of(cacheMode);
-        this.capacity = Integer.parseInt(Preconditions.checkNotNull(
-            root.getChildText("capacity"), "Capacity"));
-        this.useMemoryCaching = Boolean.parseBoolean(Preconditions.checkNotNull(
-            root.getChildText("useMemoryCaching"), "UseMemoryCaching"));
-        this.unlimitedDiskCache = Boolean.parseBoolean(Preconditions.checkNotNull(
-            root.getChildText("unlimitedDiskCache"), "UnlimitedDiskCache"));
-        this.overflowPersistence = Boolean.parseBoolean(Preconditions.checkNotNull(
-            root.getChildText("overflowPersistence"), "OverflowPersistence"));
-        log.info("OSCache [overflowPersistence=%s, unlimitedDiskCache=%s, useMemoryCaching=%s]", new Object[] {
-            overflowPersistence, unlimitedDiskCache, useMemoryCaching
-        });
     }
     
     private Class<?> of(CacheMode mode) {
@@ -118,6 +114,9 @@ public class OSCacheService extends AbstractService implements CacheService {
     
     @Override
     public void initialize() throws ServiceInitializationException {
+        log.info("OSCache [overflowPersistence=%s, unlimitedDiskCache=%s, useMemoryCaching=%s]", new Object[] {
+            overflowPersistence, unlimitedDiskCache, useMemoryCaching
+        });
         cache = new ClearableCache(
             useMemoryCaching,
             unlimitedDiskCache,
