@@ -154,6 +154,7 @@ public class OSCacheService implements CacheService, Initializable {
         cache.clear();
     }
     
+    // TODO test
     private String uniqueString(Serializable key) {
         return key.toString() + System.identityHashCode(key);
     }
