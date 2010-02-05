@@ -118,7 +118,7 @@ public class OsCacheService implements CacheService, Initializable {
     
     @Override
     public <T> T remove(Serializable key) {
-        final T item = read(key);
+        final T item = this.<T>read(key);
         cache.removeEntry(Integer.toString(key.hashCode()));
         return item;
     }
