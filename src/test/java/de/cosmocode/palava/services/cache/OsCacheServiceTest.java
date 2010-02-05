@@ -33,6 +33,8 @@ public class OsCacheServiceTest extends CacheServiceTest {
         service.setOverflowPersistence(true);
         service.setUnlimitedDiskCache(true);
         service.setUseMemoryCaching(true);
+        service.setAlgorithmClass(CacheMode.LRU);
+        service.setCapacity(10);
         service.initialize();
         return service;
     }

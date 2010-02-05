@@ -21,15 +21,14 @@ package de.cosmocode.palava.services.cache;
 
 import java.io.Serializable;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
-
 import com.opensymphony.oscache.base.Cache;
 import com.opensymphony.oscache.base.NeedsRefreshException;
+import com.opensymphony.oscache.base.algorithm.FIFOCache;
+import com.opensymphony.oscache.base.algorithm.LRUCache;
+import com.opensymphony.oscache.base.algorithm.UnlimitedCache;
 
 import de.cosmocode.palava.core.lifecycle.Initializable;
 
@@ -50,8 +49,9 @@ public class OsCacheService implements CacheService, Initializable {
         
         private static final long serialVersionUID = -8607752508098786L;
 
-        public NewCache(boolean useMemoryCaching, boolean unlimitedDiskCache, boolean overflowPersistence) {
-            super(useMemoryCaching, unlimitedDiskCache, overflowPersistence);
+        public NewCache(boolean useMemoryCaching, boolean unlimitedDiskCache,
+                boolean overflowPersistence, boolean blocking, String algorithmClass, int capacity) {
+            super(useMemoryCaching, unlimitedDiskCache, overflowPersistence, blocking, algorithmClass, capacity);
         }
         
         @Override
@@ -66,34 +66,71 @@ public class OsCacheService implements CacheService, Initializable {
         
     }
     
-    private static final Logger LOG = LoggerFactory.getLogger(OsCacheService.class);
-
     private NewCache cache;
     
-    // TODO what does false mean here?
     private boolean useMemoryCaching = true;
     
     private boolean unlimitedDiskCache;
     
-    private boolean overflowPersistence;
+    private boolean overflowPersistence = true;
+    
+    private boolean blocking;
+    
+    private String algorithmClass;
+    
+    private int capacity;
     
     @Inject(optional = true)
     void setUseMemoryCaching(@Named("oscache.useMemoryCaching") boolean useMemoryCaching) {
         this.useMemoryCaching = useMemoryCaching;
     }
+    
     @Inject(optional = true)
     void setUnlimitedDiskCache(@Named("oscache.unlimitedDiskCache") boolean unlimitedDiskCache) {
         this.unlimitedDiskCache = unlimitedDiskCache;
     }
+    
     @Inject(optional = true)
     void setOverflowPersistence(@Named("oscache.overflowPersistence") boolean overflowPersistence) {
         this.overflowPersistence = overflowPersistence;
     }
     
+    @Inject(optional = true)
+    void setBlocking(@Named("oscache.blocking") boolean blocking) {
+        this.blocking = blocking;
+    }
+    
+    @Inject(optional = true)
+    void setAlgorithmClass(@Named("oscache.algorithmClass") CacheMode algorithmClass) {
+        this.algorithmClass = of(algorithmClass);
+    }
+    
+    @Inject(optional = true)
+    void setCapacity(@Named("oscache.capacity") int capacity) {
+        this.capacity = capacity;
+    }
+    
+    private String of(CacheMode mode) {
+        switch (mode) {
+            case LRU: {
+                return LRUCache.class.getName();
+            }
+            case UNLIMITED: {
+                return UnlimitedCache.class.getName();
+            }
+            case FIFO: {
+                return FIFOCache.class.getName();
+            }
+            default: {
+                throw new UnsupportedOperationException(mode.name());
+            }
+        }
+    }
+    
     @Override
     public void initialize() {
-        LOG.info("Initialize OsCacheService.");
-        cache = new NewCache(useMemoryCaching, unlimitedDiskCache, overflowPersistence);
+        cache = new NewCache(useMemoryCaching, unlimitedDiskCache,
+            overflowPersistence, blocking, algorithmClass, capacity);
     }
     
     @Override
@@ -109,15 +146,14 @@ public class OsCacheService implements CacheService, Initializable {
         try {
             return (T) cache.getFromCache(Integer.toString(key.hashCode()));
         } catch (NeedsRefreshException e) {
-            LOG.warn("Cache needs to be refreshed.", e);
-            LOG.info("Call completeUpdate() for {}", key);
-            cache.completeUpdate(Integer.toString(key.hashCode()));
-            return (T) e.getCacheContent();
+            cache.cancelUpdate(Integer.toString(key.hashCode()));
+            return null;
         }
     }
     
     @Override
     public <T> T remove(Serializable key) {
+        Preconditions.checkNotNull(key, "Key");
         final T item = this.<T>read(key);
         cache.removeEntry(Integer.toString(key.hashCode()));
         return item;
@@ -127,4 +163,5 @@ public class OsCacheService implements CacheService, Initializable {
     public void clear() {
         cache.clear();
     }
+    
 }
