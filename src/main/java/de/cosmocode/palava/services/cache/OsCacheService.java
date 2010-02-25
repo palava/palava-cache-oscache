@@ -44,12 +44,13 @@ public class OsCacheService implements CacheService, Initializable {
      * CacheClass to make completeUpdate() and clear() visible for the OsCacheService.
      * 
      * @author Markus Baumann
+     * @author Willi Schoenborn
      */
-    private static class NewCache extends Cache {
+    private static class ClearableCache extends Cache {
         
         private static final long serialVersionUID = -8607752508098786L;
 
-        public NewCache(boolean useMemoryCaching, boolean unlimitedDiskCache,
+        public ClearableCache(boolean useMemoryCaching, boolean unlimitedDiskCache,
                 boolean overflowPersistence, boolean blocking, String algorithmClass, int capacity) {
             super(useMemoryCaching, unlimitedDiskCache, overflowPersistence, blocking, algorithmClass, capacity);
         }
@@ -66,7 +67,7 @@ public class OsCacheService implements CacheService, Initializable {
         
     }
     
-    private NewCache cache;
+    private ClearableCache cache;
     
     private boolean useMemoryCaching = true;
     
@@ -76,9 +77,9 @@ public class OsCacheService implements CacheService, Initializable {
     
     private boolean blocking;
     
-    private String algorithmClass;
+    private String algorithmClass = LRUCache.class.getName();
     
-    private int capacity;
+    private int capacity = -1;
     
     @Inject(optional = true)
     void setUseMemoryCaching(@Named("oscache.useMemoryCaching") boolean useMemoryCaching) {
@@ -99,10 +100,10 @@ public class OsCacheService implements CacheService, Initializable {
     void setBlocking(@Named("oscache.blocking") boolean blocking) {
         this.blocking = blocking;
     }
-    
+
     @Inject(optional = true)
     void setAlgorithmClass(@Named("oscache.algorithmClass") CacheMode algorithmClass) {
-        this.algorithmClass = of(algorithmClass);
+        this.algorithmClass = of(Preconditions.checkNotNull(algorithmClass, "AlgorithmClass"));
     }
     
     @Inject(optional = true)
@@ -129,14 +130,14 @@ public class OsCacheService implements CacheService, Initializable {
     
     @Override
     public void initialize() {
-        cache = new NewCache(useMemoryCaching, unlimitedDiskCache,
+        cache = new ClearableCache(useMemoryCaching, unlimitedDiskCache,
             overflowPersistence, blocking, algorithmClass, capacity);
     }
     
     @Override
     public void store(Serializable key, Object value) {
         Preconditions.checkNotNull(key, "Key");
-        cache.putInCache(Integer.toString(key.hashCode()), value);
+        cache.putInCache(key + Integer.toString(key.hashCode()), value);
     }
     
     @Override
@@ -144,9 +145,9 @@ public class OsCacheService implements CacheService, Initializable {
     public <T> T read(Serializable key) {
         Preconditions.checkNotNull(key, "Key");
         try {
-            return (T) cache.getFromCache(Integer.toString(key.hashCode()));
+            return (T) cache.getFromCache(key + Integer.toString(key.hashCode()));
         } catch (NeedsRefreshException e) {
-            cache.cancelUpdate(Integer.toString(key.hashCode()));
+            cache.cancelUpdate(key + Integer.toString(key.hashCode()));
             return null;
         }
     }
@@ -155,7 +156,7 @@ public class OsCacheService implements CacheService, Initializable {
     public <T> T remove(Serializable key) {
         Preconditions.checkNotNull(key, "Key");
         final T item = this.<T>read(key);
-        cache.removeEntry(Integer.toString(key.hashCode()));
+        cache.removeEntry(key + Integer.toString(key.hashCode()));
         return item;
     }
     

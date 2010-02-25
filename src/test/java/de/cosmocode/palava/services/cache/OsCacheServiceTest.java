@@ -30,11 +30,6 @@ public class OsCacheServiceTest extends CacheServiceTest {
     @Override
     public CacheService create() {
         final OsCacheService service = new OsCacheService();
-        service.setOverflowPersistence(true);
-        service.setUnlimitedDiskCache(true);
-        service.setUseMemoryCaching(true);
-        service.setAlgorithmClass(CacheMode.LRU);
-        service.setCapacity(10);
         service.initialize();
         return service;
     }
