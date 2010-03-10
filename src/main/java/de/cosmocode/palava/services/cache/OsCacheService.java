@@ -20,15 +20,18 @@
 package de.cosmocode.palava.services.cache;
 
 import java.io.Serializable;
+import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.opensymphony.oscache.base.Cache;
+import com.opensymphony.oscache.base.EntryRefreshPolicy;
 import com.opensymphony.oscache.base.NeedsRefreshException;
 import com.opensymphony.oscache.base.algorithm.FIFOCache;
 import com.opensymphony.oscache.base.algorithm.LRUCache;
 import com.opensymphony.oscache.base.algorithm.UnlimitedCache;
+import com.opensymphony.oscache.web.filter.ExpiresRefreshPolicy;
 
 import de.cosmocode.palava.core.lifecycle.Initializable;
 
@@ -37,6 +40,7 @@ import de.cosmocode.palava.core.lifecycle.Initializable;
  * which uses <a href="http://www.opensymphony.com/oscache/">OSCache</a>.
  *
  * @author Markus Baumann
+ * @author Oliver Lorenz (maxAge)
  */
 public class OsCacheService implements CacheService, Initializable {
     
@@ -66,6 +70,11 @@ public class OsCacheService implements CacheService, Initializable {
         }
         
     }
+    
+    private long defaultMaxAge = DEFAULT_MAX_AGE;
+    
+    private TimeUnit defaultMaxAgeUnit = DEFAULT_MAX_AGE_TIMEUNIT;
+    
     
     private ClearableCache cache;
     
@@ -135,9 +144,50 @@ public class OsCacheService implements CacheService, Initializable {
     }
     
     @Override
+    public long getMaxAge() {
+        return getMaxAge(TimeUnit.SECONDS);
+    }
+    
+    @Override
+    public long getMaxAge(TimeUnit unit) {
+        return unit.convert(defaultMaxAge, defaultMaxAgeUnit);
+    }
+    
+    @Override
+    public void setMaxAge(long maxAgeSeconds) {
+        this.setMaxAge(maxAgeSeconds, TimeUnit.SECONDS);
+    }
+    
+    @Override
+    public void setMaxAge(long maxAge, TimeUnit maxAgeUnit) {
+        Preconditions.checkArgument(maxAge >= 0, MAX_AGE_NEGATIVE);
+        Preconditions.checkNotNull(maxAgeUnit, "MaxAge TimeUnit");
+        
+        this.defaultMaxAge = maxAge;
+        this.defaultMaxAgeUnit = maxAgeUnit;
+    }
+    
+    @Override
     public void store(Serializable key, Object value) {
+        this.store(key, value, defaultMaxAge, defaultMaxAgeUnit);
+    }
+    
+    @Override
+    public void store(Serializable key, Object value, long maxAge, TimeUnit maxAgeUnit) {
+
         Preconditions.checkNotNull(key, "Key");
-        cache.putInCache(key + Integer.toString(key.hashCode()), value);
+        Preconditions.checkArgument(maxAge >= 0, MAX_AGE_NEGATIVE);
+        Preconditions.checkNotNull(maxAgeUnit, "MaxAge TimeUnit");
+        
+        final int refreshPeriod;
+        if (maxAge == DEFAULT_MAX_AGE && maxAgeUnit == DEFAULT_MAX_AGE_TIMEUNIT) {
+            refreshPeriod = -1;
+        } else {
+            refreshPeriod = (int) maxAgeUnit.toSeconds(maxAge);
+        }
+        final EntryRefreshPolicy policy = new ExpiresRefreshPolicy(refreshPeriod);
+        final String cacheKey = key + Integer.toString(key.hashCode());
+        cache.putInCache(cacheKey, value, policy);
     }
     
     @Override
