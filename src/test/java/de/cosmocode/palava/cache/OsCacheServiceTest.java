@@ -25,7 +25,7 @@ package de.cosmocode.palava.cache;
  *
  * @author Markus Baumann
  */
-public class OsCacheServiceTest extends CacheServiceTest {
+public final class OsCacheServiceTest extends CacheServiceTest {
     
     @Override
     public CacheService unit() {
@@ -33,4 +33,5 @@ public class OsCacheServiceTest extends CacheServiceTest {
         service.initialize();
         return service;
     }
+    
 }
