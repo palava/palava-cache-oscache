@@ -17,7 +17,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-package de.cosmocode.palava.services.cache;
+package de.cosmocode.palava.cache;
 
 /**
  * A Test-Class for testing the {@link OsCacheService} class
@@ -28,7 +28,7 @@ package de.cosmocode.palava.services.cache;
 public class OsCacheServiceTest extends CacheServiceTest {
     
     @Override
-    public CacheService create() {
+    public CacheService unit() {
         final OsCacheService service = new OsCacheService();
         service.initialize();
         return service;

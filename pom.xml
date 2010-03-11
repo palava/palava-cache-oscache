@@ -39,6 +39,11 @@
     </dependency>
     <dependency>
       <groupId>de.cosmocode</groupId>
+      <artifactId>cosmocode-junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>de.cosmocode</groupId>
       <artifactId>log4j-config</artifactId>
       <scope>test</scope>
       <version>1.0.2</version>

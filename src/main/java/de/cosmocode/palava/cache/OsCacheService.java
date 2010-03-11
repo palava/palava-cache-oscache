@@ -17,7 +17,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-package de.cosmocode.palava.services.cache;
+package de.cosmocode.palava.cache;
 
 import java.io.Serializable;
 import java.util.concurrent.TimeUnit;
@@ -42,7 +42,7 @@ import de.cosmocode.palava.core.lifecycle.Initializable;
  * @author Markus Baumann
  * @author Oliver Lorenz (maxAge)
  */
-public class OsCacheService implements CacheService, Initializable {
+final class OsCacheService implements CacheService, Initializable {
     
     /**
      * CacheClass to make completeUpdate() and clear() visible for the OsCacheService.
