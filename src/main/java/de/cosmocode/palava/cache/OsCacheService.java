@@ -41,6 +41,8 @@ import de.cosmocode.palava.core.lifecycle.Initializable;
  */
 final class OsCacheService implements CacheService, Initializable {
     
+    private static final String MAX_AGE_NEGATIVE = "Max age must not be negative, but was %s";
+    
     /**
      * CacheClass to make completeUpdate() and clear() visible for the OsCacheService.
      * 
@@ -157,7 +159,7 @@ final class OsCacheService implements CacheService, Initializable {
     
     @Override
     public void setMaxAge(long maxAge, TimeUnit maxAgeUnit) {
-        Preconditions.checkArgument(maxAge >= 0, MAX_AGE_NEGATIVE);
+        Preconditions.checkArgument(maxAge >= 0, MAX_AGE_NEGATIVE, maxAge);
         Preconditions.checkNotNull(maxAgeUnit, "MaxAge TimeUnit");
         
         this.defaultMaxAge = maxAge;
@@ -166,14 +168,18 @@ final class OsCacheService implements CacheService, Initializable {
     
     @Override
     public void store(Serializable key, Object value) {
-        this.store(key, value, defaultMaxAge, defaultMaxAgeUnit);
+        store(key, value, defaultMaxAge, defaultMaxAgeUnit);
+    }
+
+    private String toStringKey(Serializable key) {
+        return key + Integer.toString(key.hashCode());
     }
     
     @Override
     public void store(Serializable key, Object value, long maxAge, TimeUnit maxAgeUnit) {
 
         Preconditions.checkNotNull(key, "Key");
-        Preconditions.checkArgument(maxAge >= 0, MAX_AGE_NEGATIVE);
+        Preconditions.checkArgument(maxAge >= 0, MAX_AGE_NEGATIVE, maxAge);
         Preconditions.checkNotNull(maxAgeUnit, "MaxAge TimeUnit");
         
         final int refreshPeriod;
@@ -183,8 +189,7 @@ final class OsCacheService implements CacheService, Initializable {
             refreshPeriod = (int) maxAgeUnit.toSeconds(maxAge);
         }
         final EntryRefreshPolicy policy = new ExpiresRefreshPolicy(refreshPeriod);
-        final String cacheKey = key + Integer.toString(key.hashCode());
-        cache.putInCache(cacheKey, value, policy);
+        cache.putInCache(toStringKey(key), value, policy);
     }
     
     @Override
@@ -192,9 +197,9 @@ final class OsCacheService implements CacheService, Initializable {
     public <T> T read(Serializable key) {
         Preconditions.checkNotNull(key, "Key");
         try {
-            return (T) cache.getFromCache(key + Integer.toString(key.hashCode()));
+            return (T) cache.getFromCache(toStringKey(key));
         } catch (NeedsRefreshException e) {
-            cache.cancelUpdate(key + Integer.toString(key.hashCode()));
+            cache.cancelUpdate(toStringKey(key));
             return null;
         }
     }
@@ -203,7 +208,7 @@ final class OsCacheService implements CacheService, Initializable {
     public <T> T remove(Serializable key) {
         Preconditions.checkNotNull(key, "Key");
         final T item = this.<T>read(key);
-        cache.removeEntry(key + Integer.toString(key.hashCode()));
+        cache.removeEntry(toStringKey(key));
         return item;
     }
     
