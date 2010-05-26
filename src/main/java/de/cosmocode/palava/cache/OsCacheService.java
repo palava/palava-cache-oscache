@@ -90,32 +90,32 @@ final class OsCacheService implements CacheService, Initializable {
     private int capacity = -1;
     
     @Inject(optional = true)
-    void setUseMemoryCaching(@Named("oscache.useMemoryCaching") boolean useMemoryCaching) {
+    void setUseMemoryCaching(@Named(OsCacheServiceConfig.USE_MEMORY_CACHING) boolean useMemoryCaching) {
         this.useMemoryCaching = useMemoryCaching;
     }
     
     @Inject(optional = true)
-    void setUnlimitedDiskCache(@Named("oscache.unlimitedDiskCache") boolean unlimitedDiskCache) {
+    void setUnlimitedDiskCache(@Named(OsCacheServiceConfig.UNLIMITED_DISK_CACHE) boolean unlimitedDiskCache) {
         this.unlimitedDiskCache = unlimitedDiskCache;
     }
     
     @Inject(optional = true)
-    void setOverflowPersistence(@Named("oscache.overflowPersistence") boolean overflowPersistence) {
+    void setOverflowPersistence(@Named(OsCacheServiceConfig.OVERFLOW_PERSISTENCE) boolean overflowPersistence) {
         this.overflowPersistence = overflowPersistence;
     }
     
     @Inject(optional = true)
-    void setBlocking(@Named("oscache.blocking") boolean blocking) {
+    void setBlocking(@Named(OsCacheServiceConfig.BLOCKING) boolean blocking) {
         this.blocking = blocking;
     }
 
     @Inject(optional = true)
-    void setAlgorithmClass(@Named("oscache.algorithmClass") CacheMode algorithmClass) {
+    void setAlgorithmClass(@Named(OsCacheServiceConfig.ALGORITHM_CLASS) CacheMode algorithmClass) {
         this.algorithmClass = of(Preconditions.checkNotNull(algorithmClass, "AlgorithmClass"));
     }
     
     @Inject(optional = true)
-    void setCapacity(@Named("oscache.capacity") int capacity) {
+    void setCapacity(@Named(OsCacheServiceConfig.CAPACITY) int capacity) {
         this.capacity = capacity;
     }
     
