@@ -35,6 +35,10 @@ import de.cosmocode.palava.core.inject.RebindModule;
  * <p> For a documentation of all configuration parameters take a look at the constructor
  * ({@link #OsCacheServiceModule()}).
  * </p>
+ * <p> If you want to use several CacheServices you can use binding annotations with 
+ * the static method {@link #annotatedWith(Class, String)}
+ * and annotate each and every use of CacheService with these annotations.
+ * </p>
  *
  * @author Willi Schoenborn
  * @author Oliver Lorenz
@@ -47,19 +51,19 @@ public final class OsCacheServiceModule implements Module {
      * <h4> Optional guice configuration parameters: </h4>
      * <table>
      *   <tr>
-     *   <th> oscache.useMemoryCaching (boolean) </th>
+     *   <th> cache.oscache.useMemoryCaching (boolean) </th>
      *   <td> Specify if the memory caching is going to be used </td>
      *   </tr>
      *   <tr>
-     *   <th> oscache.unlimitetdiskCache (boolean) </th>
+     *   <th> cache.oscache.unlimitetdiskCache (boolean) </th>
      *   <td> Specify if the disk caching is unlimited </td>
      *   </tr>
      *   <tr>
-     *   <th> oscache.overflowPersistence (boolean) </th>
+     *   <th> cache.oscache.overflowPersistence (boolean) </th>
      *   <td> Specify if the persistent cache is used in overflow only mode </td>
      *   </tr>
      *   <tr>
-     *   <th> oscache.blocking (boolean) </th>
+     *   <th> cache.oscache.blocking (boolean) </th>
      *   <td> This parameter takes effect when a cache entry has just expired and
      *        several simultaneous requests try to retrieve it.
      *        While one request is rebuilding the content, the other requests will either block and
@@ -70,7 +74,7 @@ public final class OsCacheServiceModule implements Module {
      *   </td>
      *   </tr>
      *   <tr>
-     *   <th> oscache.algorithmClass ({@link CacheMode}) </th>
+     *   <th> cache.oscache.algorithmClass ({@link CacheMode}) </th>
      *   <td> The mode to use when the cache overflows and elements have to be removed from cache.
      *        Possible values:
      *        {@linkplain CacheMode#FIFO FIFO},
@@ -79,7 +83,7 @@ public final class OsCacheServiceModule implements Module {
      *   </td>
      *   </tr>
      *   <tr>
-     *   <th> oscache.capacity (int) </th>
+     *   <th> cache.oscache.capacity (int) </th>
      *   <td> The capacity </td>
      *   </tr>
      * </table>
@@ -99,7 +103,7 @@ public final class OsCacheServiceModule implements Module {
      * <p> Rebinds all configuration entries using the specified prefix for configuration
      * keys and the supplied annotation for annotation rebindings.
      * </p>
-     * <p> The config parameters must be given as <code> (prefix).oscache.(...) </code>
+     * <p> The config parameters must be given as <code> (prefix).cache.oscache.(...) </code>
      * </p>
      * <p> Have a look at the {@linkplain #OsCacheServiceModule() constructor}
      * for a documentation of all configuration parameters.

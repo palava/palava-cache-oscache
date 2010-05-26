@@ -24,7 +24,7 @@ package de.cosmocode.palava.cache;
  */
 public final class OsCacheServiceConfig {
     
-    public static final String PREFIX = "oscache.";
+    public static final String PREFIX = CacheConfig.PREFIX + "oscache.";
     
     public static final String USE_MEMORY_CACHING = PREFIX + "useMemoryCaching";
     
