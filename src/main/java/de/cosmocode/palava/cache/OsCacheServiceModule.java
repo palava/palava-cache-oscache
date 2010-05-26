@@ -45,32 +45,44 @@ public final class OsCacheServiceModule implements Module {
      * <h3> Binds the OsCache implementation to CacheService. </h3>
      * <h4> No necessary guice configuration parameters. </h4>
      * <h4> Optional guice configuration parameters: </h4>
-     * <dl>
-     *   <dt> oscache.useMemoryCaching (boolean) </dt>
-     *   <dd> Specify if the memory caching is going to be used </dd>
-     *   <dt> oscache.unlimitedDiskCache (boolean) </dt>
-     *   <dd> Specify if the disk caching is unlimited </dd>
-     *   <dt> oscache.overflowPersistence (boolean) </dt>
-     *   <dd> Specify if the persistent cache is used in overflow only mode </dd>
-     *   <dt> oscache.blocking (boolean) </dt>
-     *   <dd> This parameter takes effect when a cache entry has just expired and
+     * <table>
+     *   <tr>
+     *   <th> oscache.useMemoryCaching (boolean) </th>
+     *   <td> Specify if the memory caching is going to be used </td>
+     *   </tr>
+     *   <tr>
+     *   <th> oscache.unlimitetdiskCache (boolean) </th>
+     *   <td> Specify if the disk caching is unlimited </td>
+     *   </tr>
+     *   <tr>
+     *   <th> oscache.overflowPersistence (boolean) </th>
+     *   <td> Specify if the persistent cache is used in overflow only mode </td>
+     *   </tr>
+     *   <tr>
+     *   <th> oscache.blocking (boolean) </th>
+     *   <td> This parameter takes effect when a cache entry has just expired and
      *        several simultaneous requests try to retrieve it.
      *        While one request is rebuilding the content, the other requests will either block and
      *        wait for the new content (blocking == true) or instead receive a copy of the stale content
      *        so they don't have to wait (blocking == false).
      *        the default is false, which provides better performance
      *        but at the expense of slightly stale data being served.
-     *   </dd>
-     *   <dt> oscache.algorithmClass ({@link CacheMode}) </dt>
-     *   <dd> The mode to use when the cache overflows and elements have to be removed from cache.
+     *   </td>
+     *   </tr>
+     *   <tr>
+     *   <th> oscache.algorithmClass ({@link CacheMode}) </th>
+     *   <td> The mode to use when the cache overflows and elements have to be removed from cache.
      *        Possible values:
      *        {@linkplain CacheMode#FIFO FIFO},
      *        {@linkplain CacheMode#LRU LRU},
      *        {@linkplain CacheMode#UNLIMITED UNLIMITED}
-     *   </dd>
-     *   <dt> oscache.capacity (int) </dt>
-     *   <dd> The capacity </dd>
-     * </dl>
+     *   </td>
+     *   </tr>
+     *   <tr>
+     *   <th> oscache.capacity (int) </th>
+     *   <td> The capacity </td>
+     *   </tr>
+     * </table>
      * 
      * @see #annotatedWith(Class, String)
      */
