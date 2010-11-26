@@ -10,7 +10,7 @@
 	<name>Palava Cache OSCache</name>
 	<version>2.1-SNAPSHOT</version>
 	<scm>
-		<developerConnection>scm:svn:https://palava.svn.cosmocode.de/palava-cache-oscache/trunk</developerConnection>
+		<developerConnection>scm:git:git@github.com:palava/${project.artifactId}.git</developerConnection>
 	</scm>
 	<repositories>
 		<repository>
