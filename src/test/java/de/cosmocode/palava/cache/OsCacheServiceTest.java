@@ -16,6 +16,8 @@
 
 package de.cosmocode.palava.cache;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * A Test-Class for testing the {@link OsCacheService} class
  * which uses <a href="http://www.opensymphony.com/oscache/">OSCache</a>.
@@ -23,6 +25,31 @@ package de.cosmocode.palava.cache;
  * @author Markus Baumann
  */
 public final class OsCacheServiceTest extends CacheServiceTest {
+
+    @Override
+    protected long lifeTime() {
+        return 2;
+    }
+
+    @Override
+    protected long idleTime() {
+        return 2;
+    }
+
+    @Override
+    protected long sleepTimeBeforeIdleTimeout() {
+        return 1;
+    }
+
+    @Override
+    protected long sleepTimeUntilExpired() {
+        return 4;
+    }
+
+    @Override
+    protected TimeUnit timeUnit() {
+        return TimeUnit.SECONDS;
+    }
     
     @Override
     public CacheService unit() {

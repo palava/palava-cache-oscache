@@ -41,8 +41,6 @@ import de.cosmocode.palava.core.lifecycle.Initializable;
  */
 final class OsCacheService implements CacheService, Initializable {
     
-    private static final String MAX_AGE_NEGATIVE = "Max age must not be negative, but was %s";
-    
     /**
      * CacheClass to make completeUpdate() and clear() visible for the OsCacheService.
      * 
@@ -69,10 +67,6 @@ final class OsCacheService implements CacheService, Initializable {
         }
         
     }
-    
-    private long defaultMaxAge = DEFAULT_MAX_AGE;
-    
-    private TimeUnit defaultMaxAgeUnit = DEFAULT_MAX_AGE_TIMEUNIT;
     
     
     private ClearableCache cache;
@@ -143,55 +137,30 @@ final class OsCacheService implements CacheService, Initializable {
     }
     
     @Override
-    public long getMaxAge() {
-        return getMaxAge(TimeUnit.SECONDS);
-    }
-    
-    @Override
-    public long getMaxAge(TimeUnit unit) {
-        return unit.convert(defaultMaxAge, defaultMaxAgeUnit);
-    }
-    
-    @Override
-    public void setMaxAge(long maxAgeSeconds) {
-        this.setMaxAge(maxAgeSeconds, TimeUnit.SECONDS);
-    }
-    
-    @Override
-    public void setMaxAge(long maxAge, TimeUnit maxAgeUnit) {
-        Preconditions.checkArgument(maxAge >= 0, MAX_AGE_NEGATIVE, maxAge);
-        Preconditions.checkNotNull(maxAgeUnit, "MaxAge TimeUnit");
-        
-        this.defaultMaxAge = maxAge;
-        this.defaultMaxAgeUnit = maxAgeUnit;
-    }
-    
-    @Override
     public void store(Serializable key, Object value) {
-        store(key, value, defaultMaxAge, defaultMaxAgeUnit);
+        Preconditions.checkNotNull(key, "Key");
+
+        cache.putInCache(toStringKey(key), value);
     }
 
     private String toStringKey(Serializable key) {
         return key + Integer.toString(key.hashCode());
     }
-    
-    @Override
-    public void store(Serializable key, Object value, long maxAge, TimeUnit maxAgeUnit) {
 
+    private int minusOneIfZero(long time) {
+        return time == 0 ? -1 : (int) time;
+    }
+
+    @Override
+    public void store(Serializable key, Object value, CacheExpiration expiration) {
         Preconditions.checkNotNull(key, "Key");
-        Preconditions.checkArgument(maxAge >= 0, MAX_AGE_NEGATIVE, maxAge);
-        Preconditions.checkNotNull(maxAgeUnit, "MaxAge TimeUnit");
-        
-        final int refreshPeriod;
-        if (maxAge == DEFAULT_MAX_AGE && maxAgeUnit == DEFAULT_MAX_AGE_TIMEUNIT) {
-            refreshPeriod = -1;
-        } else {
-            refreshPeriod = (int) maxAgeUnit.toSeconds(maxAge);
-        }
+        Preconditions.checkNotNull(expiration, "Expiration");
+
+        final int refreshPeriod = minusOneIfZero(expiration.getLifeTimeIn(TimeUnit.SECONDS));
         final EntryRefreshPolicy policy = new ExpiresRefreshPolicy(refreshPeriod);
         cache.putInCache(toStringKey(key), value, policy);
     }
-    
+
     @Override
     @SuppressWarnings("unchecked")
     public <T> T read(Serializable key) {
